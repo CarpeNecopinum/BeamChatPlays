@@ -1,8 +1,10 @@
 const Beam = require('beam-client-node');
 const Interactive = require('beam-interactive-node');
 const rjs = require('robotjs');
+const au = require('autoit');
 const auth = require('./settings/settings.json');
 const Packets = require('beam-interactive-node/dist/robot/packets').default;
+au.Init();
 
 // Global Vars
 app = {
@@ -29,13 +31,14 @@ beam.use('password', {
 .catch(err => {
 	console.log(err.message);
     if (err.res) {
-        throw new Error('Error connecting to Interactive:' + err.res.body.mesage);
+        throw new Error('Error connecting to Interactive:' + err.res.body.message);
     }
     throw new Error('Error connecting to Interactive', err);
 });
 
 // Creating Robot
 function createRobot(res, stream) {
+	console.log("creating Robot.");
     return new Interactive.Robot({
         remote: res.body.address,
         channel: channelId,
@@ -45,6 +48,7 @@ function createRobot(res, stream) {
 
 // Robot Handshake
 function performRobotHandShake (robot) {
+	console.log("performRobotHandShake");
     return new Promise((resolve, reject) => {
         robot.handshake(err => {
             if (err) {
@@ -72,7 +76,7 @@ function setupRobotEvents (robot) {
     		screen(report.screen[0]);
 			screenProgress(report.screen[0]);
     	}
-		
+
 		progressUpdate(robot);
     });
     robot.on('error', err => {
@@ -96,13 +100,13 @@ function tactile(tactile){
 			var key = button['key'];
 			var movementCounter = button['movementCounter'];
 			var cooldown = button['cooldown'];
-			
+
 			buttonSave(key, holding, press);
-			
+
 			if (isNaN(movementCounter) === true && movementCounter !== null && movementCounter !== undefined && movementCounter !== ""){
-				
+
 				movement(key, movementCounter, buttonID, cooldown);
-				
+
 			} else {
 				if(isNaN(holding) === false){
 					tactileHold(key, holding, buttonID, cooldown);
@@ -133,31 +137,31 @@ function buttonSave(key, holding, press){
 	if ( app[key+'Save'] === undefined){
 		app[key+'Save'] = false;
 	}
-	
+
 }
 
 // Movement Keys
 function movement(key, movementCounter, buttonID, cooldown){
-	
+
 	var keyOne = app[key];
 	var keyOnePressed = app[key+'Save'];
 	var keyTwo = app[movementCounter];
 	var keyTwoPressed = app[movementCounter+'Save'];
-	
+
 	if (keyOne > keyTwo && keyOnePressed === false){
 		console.log("Movement: "+key+" was pressed.");
-        rjs.keyToggle(key, "down");
+		au.Send("{"+key+" down}");
         app[key+'Save'] = true;
 	}
 	if (keyTwo > keyOne && keyTwoPressed === false){
 		console.log("Movement: "+movementCounter+" was pressed.");
-        rjs.keyToggle(movementCounter, "down");
+		au.Send("{"+key+" down}");
         app[movementCounter+'Save'] = true;
 	}
 	if (keyOne === keyTwo){
 		if (keyOnePressed === true || keyTwoPressed === true ){
-			rjs.keyToggle(key, "up");
-			rjs.keyToggle(movementCounter, "up");
+			au.Send("{"+key+" up}");
+			au.Send("{"+movementCounter+" up}");
 			app[key+'Save'] = false;
 			app[movementCounter+'Save'] = false;
 		}
@@ -168,11 +172,11 @@ function movement(key, movementCounter, buttonID, cooldown){
 function tactileHold(key, holding, buttonID, cooldown){
 	if (app[key] > 0 && app[key+'Save'] !== true){
 		console.log(key+" is being held down.");
-        rjs.keyToggle(key, "down");
+		au.Send("{"+key+" down}");
         app[key+'Save'] = true;
 	} else if (holding === 0 && app[key+'Save'] !== false){
         console.log(key+" is no longer held down.");
-        rjs.keyToggle(key, "up");
+		au.Send("{"+key+" up}");
         app[key+'Save'] = false;
     }
 }
@@ -181,9 +185,9 @@ function tactileHold(key, holding, buttonID, cooldown){
 function tactileTap(key, press, buttonID, cooldown){
 	if (press > 0){
 		console.log(key+" was pressed.");
-		rjs.keyToggle(key, "down");
-		setTimeout(function(){ 
-			rjs.keyToggle(key, "up"); 
+		au.Send("{"+key+" down}");
+		setTimeout(function(){
+			au.Send("{"+key+" up}");
 		}, 20);
 	}
 }
@@ -226,9 +230,9 @@ function progressUpdate(robot){
 		"screen": screen,
 		"joystick": joystick
 	}
-	
+
 	//console.log(progress);
-	
+
 	robot.send( new Packets.ProgressUpdate(progress));
 	app.tactileProgress = [];
 	app.screenProgress = [];
@@ -242,21 +246,21 @@ function tactileProgress(tactile){
 		var rawid = tactile[i].id;
 		var holding = tactile[i].holding;
 		var press = tactile[i].pressFrequency;
-		
+
 		var controls = app.controls;
 		var button = controls.tactile[rawid]
 		var cooldown = button['cooldown'];
-		
+
 		if ( isNaN(holding) === false && holding > 0 || isNaN(press) === false && press > 0){
 			json.push({
-				"id": rawid, 
-				"cooldown": cooldown, 
+				"id": rawid,
+				"cooldown": cooldown,
 				"fired": true,
 				"progress": 1
 			});
 		} else {
 			json.push({
-				"id": rawid, 
+				"id": rawid,
 				"fired": false,
 				"progress": 0
 			});
@@ -273,8 +277,8 @@ function screenProgress(screen){
 	var screenX = mean.x;
 	var screenY = mean.y;
 	var clicks = screen.clicks;
-	
-	if ( clicks > 0){		
+
+	if ( clicks > 0){
 		json.push({
 			"id": rawid,
 			"clicks": [{
@@ -299,9 +303,9 @@ function joystickProgress (joystick){
 	if (isNaN(joyY) === true){
 		var joyY = 0;
 	}
-	
+
 	var rad =  Math.atan2(joyY, joyX);
-	
+
 	json.push({
 		"id": rawid,
 		"angle": rad,

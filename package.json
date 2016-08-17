@@ -1,14 +1,16 @@
 {
-  "name": "chatplays",
+  "name": "chatplays-autoit",
   "version": "1.0.0",
-  "description": "An app for beam.pro that allows for each interactive setup via json file button configuration.",
+  "description": "An app for beam.pro that allows for each interactive setup via json file button configuration. - AutoIt Version",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "beam.pro/firebottle",
+  "repository": "https://github.com/CarpeNecopinum/BeamChatPlays-autoit.git",
+  "author": "github.com/CarpeNecopinum",
   "license": "ISC",
   "dependencies": {
+    "autoit": "^1.1.9",
     "beam-client-node": "^0.5.3",
     "beam-interactive-node": "^0.3.1",
     "robotjs": "^0.4.4"

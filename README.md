@@ -1,11 +1,13 @@
 # BeamChatPlays
 Beam Interactive App
 
+this is based on https://github.com/Firebottle/BeamChatPlays but uses autoit to send keystrokes, which improves compatibility with some games.
+
 Description: <br>
 IN PROGRESS <br>
 This app allows you to quickly set up interactive by adding buttons to a json file.<br>
 
-Install: <br>
+Original Install Notes: <br>
 1. Download Node.js https://nodejs.org/en/ <br>
 2. Download this repo and extract the files somewhere. <br>
 3. Open up node and direct it to the folder you just extracted. <br>
@@ -19,6 +21,11 @@ Install: <br>
 11. Save the file and go back to the node.js window. <br>
 12. Type node app.js <br>
 13. Interactive should now be working! <br>
+
+Special Steps for the AutoIt version:
+
+1. the "npm install" step will probably fail due to python missing. Install Python 2.7 (not 3!) from https://www.python.org/downloads/ then type "npm config set python C:\<whereYourPythonIs>\python.exe" with the path you installed python to. Then run "npm install" again.
+2. Due to this not using robotjs, but autoit for key strokes, the key names in the current.json file have to look differently, see https://www.autoitscript.com/autoit3/docs/appendix/SendKeys.htm for reference.
 
 Button Notes: <br>
 - When setting up buttons on beam.pro make sure to check either "holding" or Frequency".<br>
