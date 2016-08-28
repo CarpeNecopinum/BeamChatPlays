@@ -4,13 +4,15 @@
 			"id": 0,
 			"key": "NUMPAD3",
 			"movementCounter": "",
-			"cooldown": 0
+			"cooldown": 0,
+			"group": "bob"
 		},
 		"1":{
 			"id": 1,
 			"key": "UP",
-			"movementCounter": "DOWN",
-			"cooldown": 0
+			"movementCounter": "",
+			"cooldown": 0,
+			"group": "bob"
 		},
 		"2":{
 			"id": 2,

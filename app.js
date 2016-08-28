@@ -1,6 +1,7 @@
 const Beam = require('beam-client-node');
 const Interactive = require('beam-interactive-node');
 const rjs = require('robotjs');
+//const au = {Init: function() {}, Send: function(key) {console.log(key);}}; // dummy to test on linux
 const au = require('autoit');
 const auth = require('./settings/settings.json');
 const Packets = require('beam-interactive-node/dist/robot/packets').default;
@@ -12,6 +13,12 @@ app = {
 	controls: require('./controls/current.json'),
 	settings: require('./settings/settings.json')
 }
+
+var voting = {
+	tap: {},
+	hold: {}
+};
+var prevVotedHolds = {};
 
 const channelId = app.auth['channelID'];
 const username = app.auth['username'];
@@ -87,19 +94,22 @@ function setupRobotEvents (robot) {
 
 // Tactile Handler
 function tactile(tactile){
+	voting = {hold: {}, tap: {}}; // reset votes
+
 	for( i = 0; i < tactile.length; i++){
 		// Get Button Settings for ID
 		var rawid = tactile[i].id;
 		var holding = tactile[i].holding;
 		var press = tactile[i].pressFrequency;
         var controls = app.controls;
-        var button = controls.tactile[rawid]
+        var button = controls.tactile[rawid];
 
 		if ( button !== undefined && button !== null){
 			var buttonID = button['id'];
 			var key = button['key'];
 			var movementCounter = button['movementCounter'];
 			var cooldown = button['cooldown'];
+			var group = button['group'];
 
 			buttonSave(key, holding, press);
 
@@ -109,17 +119,77 @@ function tactile(tactile){
 
 			} else {
 				if(isNaN(holding) === false){
-					tactileHold(key, holding, buttonID, cooldown);
+					if (group !== undefined) {
+						if (holding > 0 && (!voting.hold[group] || voting.hold[group].count < holding))
+						{
+							voting.hold[group] = {
+								count: holding,
+								key: key,
+								cooldown: cooldown
+							};
+						}
+					} else {
+						tactileHold(key, holding, buttonID, cooldown);
+					}
 				}
 
 				if (isNaN(press) === false) {
-					tactileTap(key, press, buttonID, cooldown);
+					if (group !== undefined) {
+						if (press > 0 && (!voting.tap[group] || voting.tap[group].count < press))
+						{
+							voting.tap[group] = {
+								count: press,
+								key: key,
+								cooldown: cooldown
+							};
+						}
+					} else {
+						tactileTap(key, press, buttonID, cooldown);
+					}
 				}
 			}
 		} else {
 			console.error("ERROR: Button #"+rawid+" is missing from controls json file. Stopping app.");
             process.exit();
 		}
+	}
+	// resolve votes
+	for (group in voting.tap)
+	{
+		var vote = voting.tap[group];
+		console.log(vote.key + " was selected for tap from group " + group + " by " + vote.count + " voters.");
+		au.Send("{"+vote.key+" down}");
+		setTimeout(function(){
+			au.Send("{"+vote.key+" up}");
+		}, 20);
+	}
+
+	for (group in prevVotedHolds)
+	{
+		if (voting.hold[group]) continue;
+		var prev = prevVotedHolds[group];
+		console.log("Nobody voted for group " + group + ", releasing " + prev.key);
+		au.Send("{"+prev.key+" up}");
+        app[prev.key+'Save'] = false;
+		delete prevVotedHolds[group];
+	}
+	for (group in voting.hold)
+	{
+		var vote = voting.hold[group];
+		var prev = prevVotedHolds[group];
+		if (prev && vote.key !== prev.key) {
+			console.log("Switching from " + prev.key + " to " + vote.key + " for group " + group);
+			au.Send("{"+prev.key+" up}");
+	        app[prev.key+'Save'] = false;
+
+			au.Send("{"+vote.key+" down}");
+	        app[vote.key+'Save'] = true;
+		} else if (!prev) {
+			console.log("Pressing " + vote.key + " for group " + group);
+			au.Send("{"+vote.key+" down}");
+	        app[vote.key+'Save'] = true;
+		}
+		prevVotedHolds[group] = vote;
 	}
 }
 

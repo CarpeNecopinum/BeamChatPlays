@@ -7,7 +7,7 @@ Description: <br>
 IN PROGRESS <br>
 This app allows you to quickly set up interactive by adding buttons to a json file.<br>
 
-Original Install Notes: <br>
+## Original Install Notes: <br>
 1. Download Node.js https://nodejs.org/en/ <br>
 2. Download this repo and extract the files somewhere. <br>
 3. Open up node and direct it to the folder you just extracted. <br>
@@ -22,20 +22,31 @@ Original Install Notes: <br>
 12. Type node app.js <br>
 13. Interactive should now be working! <br>
 
-Special Steps for the AutoIt version:
+## Special Steps for the AutoIt version:
 
 1. the "npm install" step will probably fail due to python missing. Install Python 2.7 (not 3!) from https://www.python.org/downloads/ then type "npm config set python C:\<whereYourPythonIs>\python.exe" with the path you installed python to. Then run "npm install" again.
 2. Due to this not using robotjs, but autoit for key strokes, the key names in the current.json file have to look differently, see https://www.autoitscript.com/autoit3/docs/appendix/SendKeys.htm for reference.
 
-Button Notes: <br>
+## Voting Functionality:
+
+The entries in your current.json can now have a `group` entry.
+
+Buttons assigned to the same group can not be tapped/held simultaneously, people pressing buttons of this group "vote" for their button, the button with the most votes is tapped/held.
+
+Possible scenario: Trolls keep releasing your Pokemon.
+
+Solved by voting: Add ALL buttons to the same group, set the reporting interval in your beam game configuration relatively high. Now the trolls need a majority to release your Pokemon (my condolences when they still do).
+
+
+## Button Notes: <br>
 - When setting up buttons on beam.pro make sure to check either "holding" or Frequency".<br>
 - If you want global cooldowns on buttons, leave the cooldown on beam.pro at 0 and edit the cooldown in the controls for this app. If you want individual cooldowns, do the opposite.<br>
 
-Screen Control Notes: <br>
+## Screen Control Notes: <br>
 - This does support screen controls. Just add screen controls to your board at beam.pro.<br>
 - While interactive allows people to build something that will click your mouse, this app does NOT do that. This is on purpose for safety reasons. (This means people can't aim and shoot with the mouse controls. Sorry!)<br>
 - Seeing as how people will be moving your mouse, you may find it hard to take back control. The easiest way to do this is to ALT + Tab back to the node window and hit CTRL + C until it stops.<br>
 
-Joystick Control Notes: <br>
+## Joystick Control Notes: <br>
 - This does support the joystick. Just add the joystick to your board at beam.pro.<br>
 - Seeing as how people will be moving your mouse, you may find it hard to take back control. The easiest way to do this is to ALT + Tab back to the node window and hit CTRL + C until it stops.<br>
